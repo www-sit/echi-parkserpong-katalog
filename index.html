@@ -1,10 +1,10 @@
-```html
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nefsi Asrifah | Echi - Property Consultant</title>
+    <title> Echi| Echi - Property Consultant</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -176,24 +176,25 @@
             </a>
         </div>
 
+        <!-- INTEGRASI MENU SAMPING MEDIA SOSIAL -->
         <div class="flex gap-4 pt-6 border-t border-gray-100">
-            <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#" class="social-icon"><i class="fa-brands fa-tiktok"></i></a>
-            <a href="#" class="social-icon"><i class="fa-brands fa-whatsapp"></i></a>
+            <a href="https://www.instagram.com/lippokarawaci.id?igsh=MXcwcTduOWV5ZXhqdA==" target="_blank" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://www.tiktok.com/@parkserponghomes?_r=1&_t=ZS-94uDfA8olij" target="_blank" class="social-icon"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="https://wa.me/628119001899" target="_blank" class="social-icon"><i class="fa-brands fa-whatsapp"></i></a>
         </div>
     </div>
 
     <!-- HEADER NAV -->
     <nav class="fixed top-0 w-full nav-glass px-6 py-5 flex justify-between items-center">
-        <div class="font-extrabold text-sm tracking-tighter uppercase">NEFSI ASRIFAH <span class="text-gold">| ECHI</span></div>
+        <div class="font-extrabold text-sm tracking-tighter uppercase"> PARK SERPONG <span class="text-gold">| ECHI</span></div>
         <button onclick="toggleSideMenu(true)" class="text-xl"><i class="fa-solid fa-bars-staggered"></i></button>
     </nav>
 
-    <!-- HEADER PROFILE SECTION -->
+    <!-- HEADER PROFILE SECTION (Foto Terintegrasi Wajah.jpg) -->
     <header id="top" class="pt-28 pb-8 px-6 bg-white transition duration-500">
         <div class="profile-container" id="profile-anim-node">
             <div class="avatar-wrapper">
-                <img src="49334.jpg" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x400?text=Echi'">
+                <img src="wajah.jpg" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x400?text=Echi'">
             </div>
             <div class="profile-info">
                 <h1 class="text-2xl font-black uppercase tracking-tighter mb-0.5">Nefsi Asrifah</h1>
@@ -201,12 +202,13 @@
                     <span id="slogan-typing-node"></span>
                 </p>
                 <p class="profile-desc">
-                    Membantu Anda menemukan hunian modern terbaik di Park Serpong dengan skema cicilan teringan dan pelayanan survei lokasi yang transparan serta profesional.
+                    Membantu Anda menemukan hunian modern terbaik dengan pengalaman saya di dunia properti, membantu menentukan skema cicilan teringan dan pelayanan survei lokasi yang transparan serta profesional.
                 </p>
+                <!-- INTEGRASI PROFILE ATAS MEDIA SOSIAL -->
                 <div class="social-wrapper">
-                    <a href="#" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="social-icon"><i class="fa-brands fa-tiktok"></i></a>
-                    <a href="#" class="social-icon"><i class="fa-brands fa-whatsapp"></i></a>
+                    <a href="https://www.instagram.com/lippokarawaci.id?igsh=MXcwcTduOWV5ZXhqdA==" target="_blank" class="social-icon"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="https://www.tiktok.com/@parkserponghomes?_r=1&_t=ZS-94uDfA8olij" target="_blank" class="social-icon"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="https://wa.me/628119001899" target="_blank" class="social-icon"><i class="fa-brands fa-whatsapp"></i></a>
                 </div>
             </div>
         </div>
@@ -279,7 +281,7 @@
             <!-- Phase 08 - Infinite Collection -->
             <div class="drawer-item" id="drawer-8">
                 <div class="drawer-header" onclick="togglePhase(8)">
-                    <div><span class="fase-badge">Premium View</span><h3 class="text-md font-black uppercase">Phase 8 - Infinite Collection</h3></div>
+                    <div><span class="fase-badge">New Launch</span><h3 class="text-md font-black uppercase">Phase 8 - Infinite Collection</h3></div>
                     <i class="fa-solid fa-chevron-down chevron-icon"></i>
                 </div>
                 <div class="drawer-content" id="list-8"></div>
@@ -288,7 +290,7 @@
             <!-- Phase 07 - Wonder Collection -->
             <div class="drawer-item active" id="drawer-7">
                 <div class="drawer-header" onclick="togglePhase(7)">
-                    <div><span class="fase-badge">New Launch</span><h3 class="text-md font-black uppercase">Phase 7 - Wonder Collection</h3></div>
+                    <div><span class="fase-badge">Best View</span><h3 class="text-md font-black uppercase">Phase 7 - Wonder Collection</h3></div>
                     <i class="fa-solid fa-chevron-down chevron-icon"></i>
                 </div>
                 <div class="drawer-content" id="list-7"></div>
@@ -369,30 +371,30 @@
         const db = getFirestore(app);
         const appId = 'park-serpong-echi-v1';
 
-        // DATABASE UNIT RELEVAN DENGAN DATA RESMI DAN JALUR FOTO LOKAL ASLI ANDA
+        // DATABASE UNIT RELEVAN DENGAN JALUR DATA PORTFOLIO FASE-5, FASE-6, & FASE-7 GITHUB
         const unitData = {
             5: [
-                { id: "bronze-livin-b", fase: 5, name: "Bronze Livin Tipe B", tag: "393 Jt", val: 393000000, desc: "Hunian compact fungsional dengan harga perdana yang sangat terjangkau.", bed: 1, bath: 1.5, floor: 2, photos: ["unit-1.jpg", "unit-1.1.jpg", "unit-1.2.jpg", "unit-1.3.jpg"] },
-                { id: "bronze-livin-bb", fase: 5, name: "Bronze Livin Tipe BB", tag: "462 Jt", val: 462000000, desc: "Varian Perunggu dengan luas bangunan lebih lega untuk keluarga muda.", bed: 1, bath: 1.5, floor: 2, photos: ["unit-2.jpg", "unit-2.1.jpg", "unit-2.2.jpg", "unit-2.3.jpg"] },
-                { id: "quartz-livin-q", fase: 5, name: "Quartz Livin Tipe Q", tag: "562 Jt", val: 562000000, desc: "Desain minimalis modern dengan sirkulasi udara dan cahaya yang baik.", bed: 2, bath: 2, floor: 2, photos: ["unit-3.jpg", "unit-3.1.jpg", "unit-3.2.jpg", "unit-3.3.jpg"] },
-                { id: "treetops-livin", fase: 5, name: "TreeTops Livin Tipe", tag: "629 Jt", val: 629000000, desc: "Hunian asri dengan pemandangan hijau yang menenangkan dari balkon.", bed: 3, bath: 3, floor: 3, photos: ["unit-4.jpg", "unit-4.1.jpg", "unit-4.2.jpg", "unit-4.3.jpg", "unit-4.4.jpg"] },
-                { id: "gold-livin-g", fase: 5, name: "Gold Livin Tipe G", tag: "774 Jt", val: 774000000, desc: "Kemewahan luas dengan tata ruang premium di kawasan eksklusif.", bed: 3, bath: 3, floor: 2, photos: ["unit-5.jpg", "unit-5.1.jpg", "unit-5.2.jpg", "unit-5.3.jpg"] },
-                { id: "goldtops-livin-gt", fase: 5, name: "GoldTops Livin Type GT", tag: "843 Jt", val: 843000000, desc: "Tipe tertinggi di Fase 5 dengan spesifikasi bangunan paling lengkap.", bed: 4, bath: 4, floor: 3, photos: ["unit-6.jpg", "unit-6.1.jpg", "unit-6.2.jpg", "unit-6.3.jpg"] }
+                { id: "bronze-livin-b", fase: 5, name: "Bronze Livin Tipe B", tag: "393 Jt", val: 393000000, desc: "Hunian compact fungsional dengan harga perdana yang sangat terjangkau.", bed: 1, bath: 1.5, floor: 2, photos: ["fase-5/unit-1.jpg", "fase-5/unit-1.1.jpg", "fase-5/unit-1.2.jpg", "fase-5/unit-1.3.jpg"] },
+                { id: "bronze-livin-bb", fase: 5, name: "Bronze Livin Tipe BB", tag: "462 Jt", val: 462000000, desc: "Varian Perunggu dengan luas bangunan lebih lega untuk keluarga muda.", bed: 1, bath: 1.5, floor: 2, photos: ["fase-5/unit-2.jpg", "fase-5/unit-2.1.jpg", "fase-5/unit-2.2.jpg", "fase-5/unit-2.3.jpg"] },
+                { id: "quartz-livin-q", fase: 5, name: "Quartz Livin Tipe Q", tag: "562 Jt", val: 562000000, desc: "Desain minimalis modern dengan sirkulasi udara dan cahaya yang baik.", bed: 2, bath: 2, floor: 2, photos: ["fase-5/unit-3.jpg", "fase-5/unit-3.1.jpg", "fase-5/unit-3.2.jpg", "fase-5/unit-3.3.jpg"] },
+                { id: "treetops-livin", fase: 5, name: "TreeTops Livin Tipe", tag: "629 Jt", val: 629000000, desc: "Hunian asri dengan pemandangan hijau yang menenangkan dari balkon.", bed: 3, bath: 3, floor: 3, photos: ["fase-5/unit-4.jpg", "fase-5/unit-4.1.jpg", "fase-5/unit-4.2.jpg", "fase-5/unit-4.3.jpg", "fase-5/unit-4.4.jpg"] },
+                { id: "gold-livin-g", fase: 5, name: "Gold Livin Tipe G", tag: "774 Jt", val: 774000000, desc: "Kemewahan luas dengan tata ruang premium di kawasan eksklusif.", bed: 3, bath: 3, floor: 2, photos: ["fase-5/unit-5.jpg", "fase-5/unit-5.1.jpg", "fase-5/unit-5.2.jpg", "fase-5/unit-5.3.jpg"] },
+                { id: "goldtops-livin-gt", fase: 5, name: "GoldTops Livin Type GT", tag: "843 Jt", val: 843000000, desc: "Tipe tertinggi di Fase 5 dengan spesifikasi bangunan paling lengkap.", bed: 4, bath: 4, floor: 3, photos: ["fase-5/unit-6.jpg", "fase-5/unit-6.1.jpg", "fase-5/unit-6.2.jpg", "fase-5/unit-6.3.jpg"] }
             ],
             6: [
-                { id: "silver-alpha-livin", fase: 6, name: "Silver Alpha Livin", tag: "534 Jt", val: 534000000, desc: "Hunian praktis di lokasi strategis yang cocok untuk investasi.", bed: 2, bath: 3, floor: 2, photos: ["unit-1.jpg", "unit-1.1.jpg", "unit-1.2.jpg", "unit-1.3.jpg"] },
-                { id: "treetops-alpha-livin", fase: 6, name: "TreeTops Alpha Livin", tag: "655 Jt", val: 655000000, desc: "Gaya hidup modern dengan estetika bangunan yang elegan dan bersih.", bed: 3, bath: 3, floor: 3, photos: ["unit-2.jpg", "unit-2.1.jpg", "unit-2.2.jpg", "unit-2.3.jpg"] },
-                { id: "gold-alpha-livin", fase: 6, name: "Gold Alpha Livin", tag: "817 Jt", val: 817000000, desc: "Unit favorit dengan balkon luas untuk menikmati udara segar Serpong.", bed: 3, bath: 3, floor: 2, photos: ["unit-3.jpg", "unit-3.1.jpg", "unit-3.2.jpg", "unit-3.3.jpg"] },
-                { id: "goldtops-alpha-livin", fase: 6, name: "GoldTops Alpha Livin", tag: "897 Jt", val: 897000000, desc: "Hunian prestisius dengan fasad megah and ruang tamu yang luas.", bed: 4, bath: 4, floor: 3, photos: ["unit-4.jpg", "unit-4.1.jpg", "unit-4.2.jpg", "unit-4.3.jpg"] },
-                { id: "cendana-alpha-livin", fase: 6, name: "Cendana Alpha Livin", tag: "1,25 M", val: 1250000000, desc: "Kombinasi sempurna antara fungsionalitas dan kemewahan modern.", bed: 4, bath: 4, floor: 2, photos: ["unit-5.jpg", "unit-5.1.jpg", "unit-5.2.jpg", "unit-5.3.jpg", "unit-5.4.jpg"] }
+                { id: "silver-alpha-livin", fase: 6, name: "Silver Alpha Livin", tag: "534 Jt", val: 534000000, desc: "Hunian praktis di lokasi strategis yang cocok untuk investasi.", bed: 2, bath: 3, floor: 2, photos: ["fase-6/unit-1.jpg", "fase-6/unit-1.1.jpg", "fase-6/unit-1.2.jpg", "fase-6/unit-1.3.jpg"] },
+                { id: "treetops-alpha-livin", fase: 6, name: "TreeTops Alpha Livin", tag: "655 Jt", val: 655000000, desc: "Gaya hidup modern dengan estetika bangunan yang elegan dan bersih.", bed: 3, bath: 3, floor: 3, photos: ["fase-6/unit-2.jpg", "fase-6/unit-2.1.jpg", "fase-6/unit-2.2.jpg", "fase-6/unit-2.3.jpg"] },
+                { id: "gold-alpha-livin", fase: 6, name: "Gold Alpha Livin", tag: "817 Jt", val: 817000000, desc: "Unit favorit dengan balkon luas untuk menikmati udara segar Serpong.", bed: 3, bath: 3, floor: 2, photos: ["fase-6/unit-3.jpg", "fase-6/unit-3.1.jpg", "fase-6/unit-3.2.jpg", "fase-6/unit-3.3.jpg"] },
+                { id: "goldtops-alpha-livin", fase: 6, name: "GoldTops Alpha Livin", tag: "897 Jt", val: 897000000, desc: "Hunian prestisius dengan fasad megah dan ruang tamu yang luas.", bed: 4, bath: 4, floor: 3, photos: ["fase-6/unit-4.jpg", "fase-6/unit-4.1.jpg", "fase-6/unit-4.2.jpg", "fase-6/unit-4.3.jpg"] },
+                { id: "cendana-alpha-livin", fase: 6, name: "Cendana Alpha Livin", tag: "1,25 M", val: 1250000000, desc: "Kombinasi sempurna antara fungsionalitas dan kemewahan modern.", bed: 4, bath: 4, floor: 2, photos: ["fase-6/unit-5.jpg", "fase-6/unit-5.1.jpg", "fase-6/unit-5.2.jpg", "fase-6/unit-5.3.jpg", "fase-6/unit-5.4.jpg"] }
             ],
             7: [
-                { id: "bronze-beverly-livin", fase: 7, name: "Bronze Beverly Livin", tag: "305 Jt", val: 305000000, desc: "Hunian bergaya Beverly Hills yang ikonik dengan harga kompetitif.", bed: 1, bath: 2, floor: 2, photos: ["unit-1.jpg", "unit-1.1.jpg", "unit-1.2.jpg", "unit-1.3.jpg"] },
-                { id: "silver-beverly-livin", fase: 7, name: "Silver Beverly Livin", tag: "423 Jt", val: 423000000, desc: "Kenyamanan ekstra dengan desain interior yang memaksimalkan ruang.", bed: 2, bath: 2, floor: 2, photos: ["unit-2.jpg", "unit-2.1.jpg", "unit-2.2.jpg", "unit-2.3.jpg"] },
-                { id: "urban-beverly-livin", fase: 7, name: "Urban Beverly Livin", tag: "569 Jt", val: 569000000, desc: "Gaya urban yang dinamis di pusat perkembangan kawasan Park Serpong.", bed: 3, bath: 3, floor: 2, photos: ["unit-3.jpg", "unit-3.1.jpg", "unit-3.2.jpg", "unit-3.3.jpg"] },
-                { id: "treetops-beverly-livin", fase: 7, name: "TreeTops Beverly Livin", tag: "568 Jt", val: 568000000, desc: "Nikmati ketenangan hidup dengan desain rumah yang menyatu dengan alam.", bed: 4, bath: 4, floor: 3, photos: ["unit-4.jpg", "unit-4.1.jpg", "unit-4.2.jpg", "unit-4.3.jpg"] },
-                { id: "gold-beverly-livin", fase: 7, name: "Gold Beverly Livin", tag: "747 Jt", val: 747000000, desc: "Simbol kemewahan bagi Anda yang mengutamakan kualitas hidup.", bed: 3, bath: 3, floor: 2, photos: ["unit-5.jpg", "unit-5.1.jpg", "unit-5.2.jpg", "unit-5.3.jpg"] },
-                { id: "goldtops-beverly-livin", fase: 7, name: "GoldTops Beverly Livin", tag: "901 Jt", val: 901000000, desc: "Masterpiece di Fase 7 dengan luas bangunan paling maksimal.", bed: 4, bath: 4, floor: 3, photos: ["unit-6.jpg", "unit-6.1.jpg", "unit-6.2.jpg", "unit-6.3.jpg"] }
+                { id: "bronze-beverly-livin", fase: 7, name: "Bronze Beverly Livin", tag: "305 Jt", val: 305000000, desc: "Hunian bergaya Beverly Hills yang ikonik dengan harga kompetitif.", bed: 1, bath: 2, floor: 2, photos: ["fase-7/unit-1.jpg", "fase-7/unit-1.1.jpg", "fase-7/unit-1.2.jpg", "fase-7/unit-1.3.jpg"] },
+                { id: "silver-beverly-livin", fase: 7, name: "Silver Beverly Livin", tag: "423 Jt", val: 423000000, desc: "Kenyamanan ekstra dengan desain interior yang memaksimalkan ruang.", bed: 2, bath: 2, floor: 2, photos: ["fase-7/unit-2.jpg", "fase-7/unit-2.1.jpg", "fase-7/unit-2.2.jpg", "fase-7/unit-2.3.jpg"] },
+                { id: "urban-beverly-livin", fase: 7, name: "Urban Beverly Livin", tag: "569 Jt", val: 569000000, desc: "Gaya urban yang dinamis di pusat perkembangan kawasan Park Serpong.", bed: 3, bath: 3, floor: 2, photos: ["fase-7/unit-3.jpg", "fase-7/unit-3.1.jpg", "fase-7/unit-3.2.jpg", "fase-7/unit-3.3.jpg"] },
+                { id: "treetops-beverly-livin", fase: 7, name: "TreeTops Beverly Livin", tag: "568 Jt", val: 568000000, desc: "Nikmati ketenangan hidup dengan desain rumah yang menyatu dengan alam.", bed: 4, bath: 4, floor: 3, photos: ["fase-7/unit-4.jpg", "fase-7/unit-4.1.jpg", "fase-7/unit-4.2.jpg", "fase-7/unit-4.3.jpg"] },
+                { id: "gold-beverly-livin", fase: 7, name: "Gold Beverly Livin", tag: "747 Jt", val: 747000000, desc: "Simbol kemewahan bagi Anda yang mengutamakan kualitas hidup.", bed: 3, bath: 3, floor: 2, photos: ["fase-7/unit-5.jpg", "fase-7/unit-5.1.jpg", "fase-7/unit-5.2.jpg", "fase-7/unit-5.3.jpg"] },
+                { id: "goldtops-beverly-livin", fase: 7, name: "GoldTops Beverly Livin", tag: "901 Jt", val: 901000000, desc: "Masterpiece di Fase 7 dengan luas bangunan paling maksimal.", bed: 4, bath: 4, floor: 3, photos: ["fase-7/unit-6.jpg", "fase-7/unit-6.1.jpg", "fase-7/unit-6.2.jpg", "fase-7/unit-6.3.jpg"] }
             ],
             8: [], 
             9: [], 
@@ -430,7 +432,6 @@
                         unitData[8] = [];
                         unitData[100] = [];
                         
-                        // Proteksi agar data statis Fase 5-7 lokal tidak tertimpa/terduplikasi oleh cloud
                         unitData[7] = unitData[7].filter(u => !u.isCloud);
                         unitData[6] = unitData[6].filter(u => !u.isCloud);
                         unitData[5] = unitData[5].filter(u => !u.isCloud);
@@ -439,7 +440,6 @@
                             const u = doc.data();
                             const f = u.fase;
                             
-                            // Hanya izinkan data baru dinamis (8 dan 100) yang memuat URL eksternal (ImgBB)
                             if (f === 8 || f === 100) {
                                 const packedUnit = {
                                     id: doc.id,

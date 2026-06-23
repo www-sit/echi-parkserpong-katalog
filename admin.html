@@ -482,10 +482,214 @@
                 window.showToast("Wajib Pilih & Sesuaikan Minimal 1 Foto!", false);
                 return;
             }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // INTEGRASI DIREK: Menambahkan modul resmi Firebase Storage
+        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSKgTZd9VuS-h9xIRrSgJr4jA-ArplPTQ",
+            authDomain: "park-serpong-echi.firebaseapp.com",
+            projectId: "park-serpong-echi",
+            storageBucket: "park-serpong-echi.firebasestorage.app",
+            messagingSenderId: "537142163615",
+            appId: "1:537142163615:web:64cb483505dcfcab7f4aaa"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app); // Inisialisasi Firebase Storage bawaan
+        const appId = 'park-serpong-echi-v1';
+
+        const SECRET_PIN = "5758";
+
+        let processedImages = []; // Menyimpan file Base64 hasil crop Anda
+        let cropperInstance = null;
+        let currentFileObj = null;
+
+        const phaseNames = {
+            8: "Phase 8 - Infinite Collection",
+            100: "Ruko & Komersial"
+        };
+
+        window.showToast = function(msg, isSuccess = true) {
+            const toast = document.getElementById('toast-msg-box');
+            const icon = document.getElementById('toast-icon-box');
+            const text = document.getElementById('toast-text');
+            
+            text.innerText = msg;
+            icon.className = isSuccess ? "fa-solid fa-circle-check text-green-500" : "fa-solid fa-circle-xmark text-red-500";
+            
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        window.verifyPIN = function() {
+            if (document.getElementById('pin-input').value === SECRET_PIN) {
+                document.getElementById('pin-modal').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                initAuthAndSync();
+            } else {
+                document.getElementById('pin-error').classList.remove('hidden');
+                document.getElementById('pin-input').value = "";
+            }
+        };
+
+        window.logoutAdmin = function() {
+            document.getElementById('pin-input').value = "";
+            document.getElementById('pin-modal').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+        };
+
+        window.toggleFormInputs = function(value) {
+            const bedContainer = document.getElementById('bed-input-container');
+            const bedInput = document.getElementById('form-bed');
+            if (parseInt(value) === 100) {
+                bedInput.value = 0;
+                bedContainer.classList.add('opacity-40', 'pointer-events-none');
+            } else {
+                if (bedInput.value == 0) bedInput.value = "";
+                bedContainer.classList.remove('opacity-40', 'pointer-events-none');
+            }
+        }
+
+        async function initAuthAndSync() {
+            try {
+                await signInAnonymously(auth);
+            } catch (err) {
+                window.showToast("Gagal Autentikasi Cloud", false);
+                return;
+            }
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'units');
+                    onSnapshot(collectionRef, (snapshot) => {
+                        const units = [];
+                        snapshot.forEach((doc) => { 
+                            const data = doc.data();
+                            if (data.fase === 8 || data.fase === 100) {
+                                units.push({ id: doc.id, ...data }); 
+                            }
+                        });
+                        units.sort((a, b) => a.fase - b.fase);
+                        renderAdminList(units);
+                    }, (err) => {
+                        window.showToast("Koneksi Database Gagal", false);
+                    });
+                }
+            });
+        }
+
+        // --- ALUR PROSES PENGAMBILAN & CROP GAMBAR ---
+        document.getElementById('form-image-files').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                currentFileObj = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const cropperModal = document.getElementById('cropper-modal');
+                    const cropperImg = document.getElementById('cropper-image');
+                    
+                    cropperImg.src = event.target.result;
+                    cropperModal.classList.remove('hidden');
+                    cropperImg.classList.remove('opacity-0');
+
+                    if (cropperInstance) {
+                        cropperInstance.destroy();
+                    }
+
+                    cropperInstance = new Cropper(cropperImg, {
+                        aspectRatio: 16 / 9,
+                        viewMode: 1,
+                        background: false,
+                        autoCropArea: 1
+                    });
+                };
+                reader.readAsDataURL(currentFileObj);
+            }
+        });
+
+        window.cancelCrop = function() {
+            document.getElementById('cropper-modal').classList.add('hidden');
+            document.getElementById('form-image-files').value = "";
+            if (cropperInstance) cropperInstance.destroy();
+        };
+
+        window.saveCrop = function() {
+            if (cropperInstance) {
+                const canvas = cropperInstance.getCroppedCanvas({ width: 1280, height: 720 });
+                const base64Img = canvas.toDataURL('image/jpeg', 0.85);
+                
+                // Masukkan hasil crop ke dalam array processedImages sesuai logika asli Anda
+                processedImages.push(base64Img);
+
+                // Sinkronkan ke UI preview kontainer Anda
+                const container = document.getElementById('preview-container');
+                container.innerHTML += `
+                    <div class="relative aspect-video bg-gray-200 rounded-xl overflow-hidden border border-gray-200 shadow-inner">
+                        <img src="${base64Img}" class="w-full h-full object-cover">
+                    </div>
+                `;
+                
+                document.getElementById('cropper-modal').classList.add('hidden');
+                document.getElementById('form-image-files').value = "";
+                cropperInstance.destroy();
+            }
+        };
+
+        // CORE ENGINE: Fungsi untuk mengunggah semua gambar di array processedImages ke Firebase Storage
+        async function uploadImagesToCloud() {
+            const urls = [];
+            for (let i = 0; i < processedImages.length; i++) {
+                const base64Data = processedImages[i];
+                const uniqueFilename = `img_${Date.now()}_${i}.jpg`;
+                const storageRef = ref(storage, `katalog_echi/${uniqueFilename}`);
+                
+                // Mengunggah string base64 secara aman
+                const snapshot = await uploadString(storageRef, base64Data, 'data_url');
+                const downloadUrl = await getDownloadURL(snapshot.ref);
+                urls.push(downloadUrl);
+            }
+            return urls;
+        }
+
+        // --- SUBMIT JALUR DATA (DIRESTORASI SESUAI LOGIKA ASLI ANDA) ---
+        window.handleFormSubmit = async function(event) {
+            event.preventDefault();
+            
+            const docIdInput = document.getElementById('unit-doc-id').value;
+            const statusLabel = document.getElementById('upload-status');
+            const submitBtn = document.getElementById('submit-btn');
+
+            const fase = parseInt(document.getElementById('form-fase').value);
+            const name = document.getElementById('form-name').value;
+            const tag = document.getElementById('form-tag').value;
+            const val = parseInt(document.getElementById('form-val').value);
+            const bed = parseFloat(document.getElementById('form-bed').value) || 0;
+            const bath = parseFloat(document.getElementById('form-bath').value) || 0;
+            const floor = parseInt(document.getElementById('form-floor').value) || 1;
+            const desc = document.getElementById('form-desc').value;
+
+            // Membaca data foto lama jika dalam mode edit
+            let finalPhotos = [];
+            const existingPhotosVal = document.getElementById('existing-photos').value;
+            if (existingPhotosVal) {
+                try { finalPhotos = JSON.parse(decodeURIComponent(existingPhotosVal)); } catch(e) {}
+            }
+
+            if (!docIdInput && processedImages.length === 0) {
+                window.showToast("Wajib Pilih & Sesuaikan Minimal 1 Foto!", false);
+                return;
+            }
 
             if (processedImages.length > 0) {
                 statusLabel.classList.remove('hidden');
                 submitBtn.disabled = true;
+                
+                // Memanggil fungsi cloud bawaan Firebase Storage yang baru dibuat
                 const cloudUrls = await uploadImagesToCloud();
                 
                 finalPhotos = docIdInput ? [...cloudUrls, ...finalPhotos] : cloudUrls;
@@ -546,7 +750,7 @@
             container.innerHTML = units.map(u => `
                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 shadow-sm text-xs mt-2">
                     <div class="truncate flex items-center gap-3">
-                        <img src="${u.photos[0]}" class="w-10 h-10 object-cover rounded-xl border border-gray-200">
+                        <img src="${u.photos && u.photos[0] ? u.photos[0] : 'https://via.placeholder.com/150'}" class="w-10 h-10 object-cover rounded-xl border border-gray-200">
                         <div class="truncate">
                             <span class="font-extrabold text-[#a68966] text-[8px] block uppercase">
                                 ${phaseNames[u.fase] || `FASE ${u.fase}`}
@@ -574,14 +778,14 @@
             document.getElementById('form-bath').value = u.bath;
             document.getElementById('form-floor').value = u.floor;
             document.getElementById('form-desc').value = u.desc;
-            document.getElementById('existing-photos').value = encodeURIComponent(JSON.stringify(u.photos));
+            document.getElementById('existing-photos').value = encodeURIComponent(JSON.stringify(u.photos || []));
 
             document.getElementById('form-header').innerText = "Edit Unit: " + u.name;
             document.getElementById('submit-btn').innerText = "Simpan Perubahan";
             
             processedImages = [];
             const container = document.getElementById('preview-container');
-            container.innerHTML = u.photos.map((url, idx) => `
+            container.innerHTML = (u.photos || []).map((url, idx) => `
                 <div class="relative aspect-video bg-gray-200 rounded-xl overflow-hidden border border-gray-200 shadow-inner">
                     <img src="${url}" class="w-full h-full object-cover">
                     ${idx === 0 ? '<span class="absolute bottom-0 left-0 right-0 bg-[#2d241d]/80 text-white text-[7px] font-black uppercase text-center py-0.5 tracking-wider">Active Cover</span>' : ''}
@@ -595,7 +799,7 @@
             document.getElementById('unit-doc-id').value = "";
             document.getElementById('existing-photos').value = "";
             document.getElementById('unit-form').reset();
-            toggleFormInputs(8); // Kembalikan ke default Phase 8
+            toggleFormInputs(8);
             document.getElementById('form-header').innerText = "Tambah Unit Baru";
             document.getElementById('submit-btn').innerText = "Simpan Data";
             processedImages = [];
@@ -604,5 +808,6 @@
     </script>
 </body>
 </html>
+
 
 ```

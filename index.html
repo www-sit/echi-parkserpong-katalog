@@ -350,27 +350,24 @@
         </div>
         <div id="unit-sheet-content" class="px-6 pb-12"></div>
     </div>
+    
+<!-- SCRIPT UTAMA KONEKSI DATABASE HYBRID -->
+<script type="module">
+    // Menggunakan CDN resmi Supabase
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    <!-- SCRIPT UTAMA KONEKSI DATABASE HYBRID -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    // Kredensial Supabase Anda yang sudah aktif
+    const SUPABASE_URL = "https://lksrgjttyrvqsnvjrwyi.supabase.co"; 
+    const SUPABASE_ANON_KEY = "sb_publishable_L9bph0GQ0OGZXRWZSQD-pA_tfk2_mXw";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSKgTZd9VuS-h9xIRrSgJr4jA-ArplPTQ",
-            authDomain: "park-serpong-echi.firebaseapp.com",
-            projectId: "park-serpong-echi",
-            storageBucket: "park-serpong-echi.firebasestorage.app",
-            messagingSenderId: "537142163615",
-            appId: "1:537142163615:web:64cb483505dcfcab7f4aaa"
-        };
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+            persistSession: false,
+            autoRefreshToken: false
+        }
+    });
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = 'park-serpong-echi-v1';
-
+    
         // DATABASE UNIT RELEVAN DENGAN JALUR DATA PORTFOLIO FASE-5, FASE-6, & FASE-7 GITHUB
         const unitData = {
             5: [
@@ -417,61 +414,71 @@
         }
 
         async function connectCloudDatabase() {
-            try {
-                await signInAnonymously(auth);
-            } catch (err) {
-                console.error("Gagal terhubung dengan layanan Firebase Auth.");
-                return;
-            }
+    try {
+        // 1. Ambil data unit terbaru dari tabel Supabase Anda
+        const { data: unitSupabase, error } = await supabase
+            .from('units')
+            .select('*');
 
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'units');
+        if (error) {
+            console.error("Gagal mengambil data dari Supabase:", error);
+            return;
+        }
+
+        // 2. Reset data cloud lama agar tidak duplikat saat halaman dimuat ulang
+        unitData[8] = [];
+        unitData[100] = [];
+        unitData[7] = unitData[7].filter(u => !u.isCloud);
+        unitData[6] = unitData[6].filter(u => !u.isCloud);
+        unitData[5] = unitData[5].filter(u => !u.isCloud);
+
+        // 3. Olah data dari Supabase agar strukturnya sama dengan katalog Anda
+        if (unitSupabase && unitSupabase.length > 0) {
+            unitSupabase.forEach(unit => {
+                const f = unit.fase;
+
+                // Pastikan hanya memproses fase yang relevan (5, 6, 7, 8, atau 100)
+                if (f === 5 || f === 6 || f === 7 || f === 8 || f === 100) {
+                    const fotoUnit = unit.photos && unit.photos.length > 0 ? unit.photos[0] : 'placeholder.jpg';
                     
-                    onSnapshot(collectionRef, (snapshot) => {
-                        unitData[8] = [];
-                        unitData[100] = [];
-                        
-                        unitData[7] = unitData[7].filter(u => !u.isCloud);
-                        unitData[6] = unitData[6].filter(u => !u.isCloud);
-                        unitData[5] = unitData[5].filter(u => !u.isCloud);
+                    const packedUnit = {
+                        id: unit.id,
+                        fase: f,
+                        name: unit.name,
+                        price: unit.tag || "Detail Hubungi Admin", // Menyesuaikan tampilan harga text
+                        val: unit.val || 0,
+                        bed: unit.bed,
+                        bath: unit.bath,
+                        floor: unit.floor,
+                        img: fotoUnit, // Mengarahkan URL foto Supabase ke variabel img katalog Anda
+                        desc: unit.desc,
+                        isCloud: true
+                    };
 
-                        snapshot.forEach((doc) => {
-                            const u = doc.data();
-                            const f = u.fase;
-                            
-                            if (f === 8 || f === 100) {
-                                const packedUnit = {
-                                    id: doc.id,
-                                    fase: f,
-                                    name: u.name,
-                                    tag: u.tag,
-                                    val: u.val,
-                                    bed: u.bed,
-                                    bath: u.bath,
-                                    floor: u.floor,
-                                    photos: u.photos, // URL Cloud dari ImgBB
-                                    desc: u.desc,
-                                    isCloud: true
-                                };
-                                unitData[f].push(packedUnit);
-                            }
-                        });
-
-                        for (let key in unitData) {
-                            unitData[key].sort((a, b) => a.name.localeCompare(b.name));
-                        }
-
-                        const activeDrawer = document.querySelector('.drawer-item.active');
-                        if (activeDrawer) {
-                            const activeFaseId = parseInt(activeDrawer.id.replace('drawer-', ''));
-                            renderUnits(activeFaseId);
-                        }
-                    }, (err) => {
-                        console.error("Firestore offline. Menjalankan fallback database lokal.");
-                    });
+                    // Masukkan ke array unitData sesuai kelompok fasenya
+                    unitData[f].push(packedUnit);
                 }
             });
+        }
+
+        // 4. Lakukan pengurutan nama secara alfabetis (A-Z) sesuai kode asli Anda
+        for (let key in unitData) {
+            unitData[key].sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        // 5. Jalankan fungsi render otomatis untuk memunculkan unit di layar
+        const activeDrawer = document.querySelector('.drawer-item.active');
+        if (activeDrawer) {
+            const activeFaseId = parseInt(activeDrawer.id.replace('drawer-', ''));
+            renderUnits(activeFaseId);
+        } else {
+            // Jika tidak ada drawer aktif, default tampilkan Fase 7 bawaan onload
+            renderUnits(7);
+        }
+
+    } catch (err) {
+        console.error("Sistem gagal memproses sinkronisasi database:", err);
+    }
         }
 
         window.scrollToKatalog = function() {

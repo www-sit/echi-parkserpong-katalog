@@ -244,17 +244,21 @@
 <!-- SUPABASE CORE ENGINE -->
     <script type="module">
         // Menggunakan CDN resmi Supabase
-        // Menggunakan library client versi terbaru yang mendukung kunci publishable baru
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
         // =========================================================================
         // MASUKKAN API CREDENTIALS SUPABASE ANDA DI SINI
         // =========================================================================
-        const SUPABASE_URL = "https://lksrgjttyrvqsnvjrwyi.supabase.co/rest/v1"; 
+        const SUPABASE_URL = "https://lksrgjttyrvqsnvjrwyi.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_L9bph0GQ0OGZXRWZSQD-pA_tfk2_mXw";
-        
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        persistSession: false,
+        autoRefreshToken: false
+    }
+});
 
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      
         const SECRET_PIN = "5758";
 
         let processedImages = []; // Menyimpan file Base64 hasil crop

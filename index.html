@@ -455,16 +455,18 @@
         const packedUnit = {
             id: unit.id,
             fase: f,
-            name: unit.name,
+            name: unit.name || "Tanpa Nama",
             price: unit.tag || "Detail Hubungi Admin",
             val: unit.val || 0,
-            bed: unit.bed,
-            bath: unit.bath,
-            floor: unit.floor,
-            img: fotoUnit,
-            desc: unit.desc,
+            bed: unit.bed || 0,
+            bath: unit.bath || 0,
+            floor: unit.floor || 0,
+            img: fotoUnit, // Tetap dipertahankan jika ada fungsi lain yang memakai
+            photos: [fotoUnit], // <-- INI KUNCINYA: Wajib ditambahkan sebagai array agar fungsi renderUnits & openSheet tidak crash!
+            desc: unit.desc || "",
             isCloud: true
         };
+        
 
       // Masukkan ke array unitData sesuai kelompok fasenya
                     unitData[f].push(packedUnit);

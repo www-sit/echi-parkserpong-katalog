@@ -241,35 +241,25 @@
             </div>
         </div>
     </div>
-
-    <!-- FIREBASE & CORE ENGINE -->
+<!-- SUPABASE CORE ENGINE -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Menggunakan CDN resmi Supabase
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSKgTZd9VuS-h9xIRrSgJr4jA-ArplPTQ",
-            authDomain: "park-serpong-echi.firebaseapp.com",
-            projectId: "park-serpong-echi",
-            storageBucket: "park-serpong-echi.firebasestorage.app",
-            messagingSenderId: "537142163615",
-            appId: "1:537142163615:web:64cb483505dcfcab7f4aaa"
-        };
+        // =========================================================================
+        // MASUKKAN API CREDENTIALS SUPABASE ANDA DI SINI
+        // =========================================================================
+        const SUPABASE_URL = "https://lksrgjttyrvqsnvjrwyi.supabase.co/rest/v1/"; 
+        const SUPABASE_ANON_KEY = "sb_publishable_L9bph0GQ0OGZXRWZSQD-pA_tfk2_mXw";
+        
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = 'park-serpong-echi-v1';
-
-        const IMGBB_API_KEY = "1f6c8c0be137f5a7d40c78920d3c54d2"; 
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const SECRET_PIN = "5758";
 
-        let processedImages = [];
+        let processedImages = []; // Menyimpan file Base64 hasil crop
         let cropperInstance = null;
         let currentFileObj = null;
 
-        // Pemetaan penamaan dinamis eksklusif hanya untuk 2 kategori dinamis
         const phaseNames = {
             8: "Phase 8 - Infinite Collection",
             100: "Ruko & Komersial"
@@ -279,10 +269,8 @@
             const toast = document.getElementById('toast-msg-box');
             const icon = document.getElementById('toast-icon-box');
             const text = document.getElementById('toast-text');
-            
             text.innerText = msg;
             icon.className = isSuccess ? "fa-solid fa-circle-check text-green-500" : "fa-solid fa-circle-xmark text-red-500";
-            
             toast.classList.add('show');
             setTimeout(() => { toast.classList.remove('show'); }, 3000);
         }
@@ -291,7 +279,7 @@
             if (document.getElementById('pin-input').value === SECRET_PIN) {
                 document.getElementById('pin-modal').classList.add('hidden');
                 document.getElementById('admin-dashboard').classList.remove('hidden');
-                initAuthAndSync();
+                fetchUnitsFromSupabase(); // Ambil data saat login berhasil
             } else {
                 document.getElementById('pin-error').classList.remove('hidden');
                 document.getElementById('pin-input').value = "";
@@ -316,275 +304,22 @@
             }
         }
 
-        async function initAuthAndSync() {
-            try {
-                await signInAnonymously(auth);
-            } catch (err) {
-                window.showToast("Gagal Autentikasi Cloud", false);
+        // --- FETCH DATA DARI SUPABASE DATABASE ---
+        async function fetchUnitsFromSupabase() {
+            const { data, error } = await supabase
+                .from('units')
+                .select('*')
+                .in('fase', [8, 100]);
+
+            if (error) {
+                window.showToast("Gagal memuat data", false);
                 return;
             }
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'units');
-                    onSnapshot(collectionRef, (snapshot) => {
-                        const units = [];
-                        snapshot.forEach((doc) => { 
-                            const data = doc.data();
-                            // Ambil data yang hanya bertipe 8 dan 100 sesuai aturan admin kita
-                            if (data.fase === 8 || data.fase === 100) {
-                                units.push({ id: doc.id, ...data }); 
-                            }
-                        });
-                        units.sort((a, b) => a.fase - b.fase);
-                        renderAdminList(units);
-                    }, (err) => {
-                        window.showToast("Koneksi Database Gagal", false);
-                    });
-                }
-            });
+            data.sort((a, b) => a.fase - b.fase);
+            renderAdminList(data);
         }
 
-        document.getElementById('form-image-files').addEventListener('change', function(e) {
-            if (e.target.files && e.target.files[0]) {
-                currentFileObj = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const cropperImg = document.getElementById('cropper-image');
-                    
-                    if (cropperInstance) {
-                        cropperInstance.destroy();
-                        cropperInstance = null;
-                    }
-
-                    cropperImg.src = event.target.result;
-                    cropperImg.classList.add('opacity-0');
-                    
-                    document.getElementById('cropper-modal').classList.remove('hidden');
-                    document.getElementById('cropper-modal').classList.add('flex');
-                    
-                    setTimeout(() => {
-                        cropperInstance = new Cropper(cropperImg, {
-                            aspectRatio: 16 / 9,
-                            viewMode: 1,
-                            dragMode: 'move',
-                            background: false,
-                            autoCropArea: 0.95,
-                            responsive: true,
-                            restore: false,
-                            ready: function() {
-                                cropperImg.classList.remove('opacity-0');
-                            }
-                        });
-                    }, 250);
-                };
-                reader.readAsDataURL(currentFileObj);
-            }
-        });
-
-        window.saveCrop = function() {
-            if (!cropperInstance) return;
-            
-            cropperInstance.getCroppedCanvas({
-                width: 720,
-                height: 405,
-                imageSmoothingEnabled: true,
-                imageSmoothingQuality: 'high'
-            }).toBlob((blob) => {
-                if (blob) {
-                    processedImages.push(blob);
-                    renderPreviews();
-                }
-                cancelCrop();
-            }, 'image/webp', 0.85);
-        };
-
-        window.cancelCrop = function() {
-            document.getElementById('cropper-modal').classList.add('hidden');
-            document.getElementById('cropper-modal').classList.remove('flex');
-            document.getElementById('form-image-files').value = "";
-            if (cropperInstance) {
-                cropperInstance.destroy();
-                cropperInstance = null;
-            }
-        };
-
-        function renderPreviews() {
-            const container = document.getElementById('preview-container');
-            container.innerHTML = processedImages.map((blob, idx) => {
-                const url = URL.createObjectURL(blob);
-                return `
-                    <div class="relative aspect-video bg-gray-200 rounded-xl overflow-hidden border border-gray-200 shadow-inner group">
-                        <img src="${url}" class="w-full h-full object-cover">
-                        <button type="button" onclick="removePreview(${idx})" class="absolute top-1 right-1 w-5 h-5 bg-black/60 text-white text-[9px] rounded-full flex items-center justify-center active:scale-95 transition">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                        ${idx === 0 ? '<span class="absolute bottom-0 left-0 right-0 bg-[#2d241d]/80 text-white text-[7px] font-black uppercase text-center py-0.5 tracking-wider">Cover</span>' : ''}
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.removePreview = function(idx) {
-            processedImages.splice(idx, 1);
-            renderPreviews();
-        };
-
-        async function uploadImagesToCloud() {
-            const uploadedUrls = [];
-            for (let i = 0; i < processedImages.length; i++) {
-                const formData = new FormData();
-                formData.append("image", processedImages[i], `unit-photo-${Date.now()}-${i}.webp`);
-                
-                try {
-                    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                        method: "POST",
-                        body: formData
-                    });
-                    const resData = await response.json();
-                    if (resData.success) {
-                        uploadedUrls.push(resData.data.url);
-                    }
-                } catch (err) {
-                    console.error("Gagal kirim ke ImgBB:", err);
-                }
-            }
-            return uploadedUrls;
-        }
-
-        window.handleFormSubmit = async function(event) {
-            event.preventDefault();
-            
-            if (!auth.currentUser) {
-                window.showToast("Otentikasi kedaluwarsa, mohon login ulang", false);
-                return;
-            }
-
-            const statusLabel = document.getElementById('upload-status');
-            const submitBtn = document.getElementById('submit-btn');
-            const docIdInput = document.getElementById('unit-doc-id').value;
-            
-            const name = document.getElementById('form-name').value.trim();
-            const fase = parseInt(document.getElementById('form-fase').value);
-            const tag = document.getElementById('form-tag').value.trim();
-            const val = parseInt(document.getElementById('form-val').value) || 0;
-            const bed = parseFloat(document.getElementById('form-bed').value) || 0;
-            const bath = parseFloat(document.getElementById('form-bath').value) || 0;
-            const floor = parseInt(document.getElementById('form-floor').value) || 0;
-            const desc = document.getElementById('form-desc').value.trim();
-
-            let finalPhotos = [];
-            if (docIdInput) {
-                finalPhotos = JSON.parse(decodeURIComponent(document.getElementById('existing-photos').value || "[]"));
-            }
-
-            if (!docIdInput && processedImages.length === 0) {
-                window.showToast("Wajib Pilih & Sesuaikan Minimal 1 Foto!", false);
-                return;
-            }
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // INTEGRASI DIREK: Menambahkan modul resmi Firebase Storage
-        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDSKgTZd9VuS-h9xIRrSgJr4jA-ArplPTQ",
-            authDomain: "park-serpong-echi.firebaseapp.com",
-            projectId: "park-serpong-echi",
-            storageBucket: "park-serpong-echi.firebasestorage.app",
-            messagingSenderId: "537142163615",
-            appId: "1:537142163615:web:64cb483505dcfcab7f4aaa"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app); // Inisialisasi Firebase Storage bawaan
-        const appId = 'park-serpong-echi-v1';
-
-        const SECRET_PIN = "5758";
-
-        let processedImages = []; // Menyimpan file Base64 hasil crop Anda
-        let cropperInstance = null;
-        let currentFileObj = null;
-
-        const phaseNames = {
-            8: "Phase 8 - Infinite Collection",
-            100: "Ruko & Komersial"
-        };
-
-        window.showToast = function(msg, isSuccess = true) {
-            const toast = document.getElementById('toast-msg-box');
-            const icon = document.getElementById('toast-icon-box');
-            const text = document.getElementById('toast-text');
-            
-            text.innerText = msg;
-            icon.className = isSuccess ? "fa-solid fa-circle-check text-green-500" : "fa-solid fa-circle-xmark text-red-500";
-            
-            toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 3000);
-        }
-
-        window.verifyPIN = function() {
-            if (document.getElementById('pin-input').value === SECRET_PIN) {
-                document.getElementById('pin-modal').classList.add('hidden');
-                document.getElementById('admin-dashboard').classList.remove('hidden');
-                initAuthAndSync();
-            } else {
-                document.getElementById('pin-error').classList.remove('hidden');
-                document.getElementById('pin-input').value = "";
-            }
-        };
-
-        window.logoutAdmin = function() {
-            document.getElementById('pin-input').value = "";
-            document.getElementById('pin-modal').classList.remove('hidden');
-            document.getElementById('admin-dashboard').classList.add('hidden');
-        };
-
-        window.toggleFormInputs = function(value) {
-            const bedContainer = document.getElementById('bed-input-container');
-            const bedInput = document.getElementById('form-bed');
-            if (parseInt(value) === 100) {
-                bedInput.value = 0;
-                bedContainer.classList.add('opacity-40', 'pointer-events-none');
-            } else {
-                if (bedInput.value == 0) bedInput.value = "";
-                bedContainer.classList.remove('opacity-40', 'pointer-events-none');
-            }
-        }
-
-        async function initAuthAndSync() {
-            try {
-                await signInAnonymously(auth);
-            } catch (err) {
-                window.showToast("Gagal Autentikasi Cloud", false);
-                return;
-            }
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'units');
-                    onSnapshot(collectionRef, (snapshot) => {
-                        const units = [];
-                        snapshot.forEach((doc) => { 
-                            const data = doc.data();
-                            if (data.fase === 8 || data.fase === 100) {
-                                units.push({ id: doc.id, ...data }); 
-                            }
-                        });
-                        units.sort((a, b) => a.fase - b.fase);
-                        renderAdminList(units);
-                    }, (err) => {
-                        window.showToast("Koneksi Database Gagal", false);
-                    });
-                }
-            });
-        }
-
-        // --- ALUR PROSES PENGAMBILAN & CROP GAMBAR ---
+        // --- CROPPER JALUR GAMBAR ---
         document.getElementById('form-image-files').addEventListener('change', function(e) {
             if (e.target.files && e.target.files[0]) {
                 currentFileObj = e.target.files[0];
@@ -592,14 +327,11 @@
                 reader.onload = function(event) {
                     const cropperModal = document.getElementById('cropper-modal');
                     const cropperImg = document.getElementById('cropper-image');
-                    
                     cropperImg.src = event.target.result;
                     cropperModal.classList.remove('hidden');
                     cropperImg.classList.remove('opacity-0');
 
-                    if (cropperInstance) {
-                        cropperInstance.destroy();
-                    }
+                    if (cropperInstance) cropperInstance.destroy();
 
                     cropperInstance = new Cropper(cropperImg, {
                         aspectRatio: 16 / 9,
@@ -622,120 +354,128 @@
             if (cropperInstance) {
                 const canvas = cropperInstance.getCroppedCanvas({ width: 1280, height: 720 });
                 const base64Img = canvas.toDataURL('image/jpeg', 0.85);
-                
-                // Masukkan hasil crop ke dalam array processedImages sesuai logika asli Anda
                 processedImages.push(base64Img);
 
-                // Sinkronkan ke UI preview kontainer Anda
                 const container = document.getElementById('preview-container');
                 container.innerHTML += `
                     <div class="relative aspect-video bg-gray-200 rounded-xl overflow-hidden border border-gray-200 shadow-inner">
                         <img src="${base64Img}" class="w-full h-full object-cover">
                     </div>
                 `;
-                
                 document.getElementById('cropper-modal').classList.add('hidden');
                 document.getElementById('form-image-files').value = "";
                 cropperInstance.destroy();
             }
         };
 
-        // CORE ENGINE: Fungsi untuk mengunggah semua gambar di array processedImages ke Firebase Storage
-        async function uploadImagesToCloud() {
+        // Mengubah Base64 hasil crop menjadi file Blob agar diterima Supabase Storage
+        function dataURLtoBlob(dataurl) {
+            var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+            while(n--){ u8arr[n] = bstr.charCodeAt(n); }
+            return new Blob([u8arr], {type:mime});
+        }
+
+        // --- PROSES UNGGAH KE SUPABASE STORAGE ---
+        async function uploadImagesToSupabase() {
             const urls = [];
             for (let i = 0; i < processedImages.length; i++) {
                 const base64Data = processedImages[i];
+                const blob = dataURLtoBlob(base64Data);
                 const uniqueFilename = `img_${Date.now()}_${i}.jpg`;
-                const storageRef = ref(storage, `katalog_echi/${uniqueFilename}`);
-                
-                // Mengunggah string base64 secara aman
-                const snapshot = await uploadString(storageRef, base64Data, 'data_url');
-                const downloadUrl = await getDownloadURL(snapshot.ref);
-                urls.push(downloadUrl);
+
+                // Upload ke bucket 'katalog-properti' yang sudah Anda buat publik
+                const { data, error } = await supabase.storage
+                    .from('katalog-properti')
+                    .upload(uniqueFilename, blob, { contentType: 'image/jpeg' });
+
+                if (error) throw error;
+
+                // Ambil Public URL resmi gambar tersebut
+                const { data: publicUrlData } = supabase.storage
+                    .from('katalog-properti')
+                    .getPublicUrl(uniqueFilename);
+
+                urls.push(publicUrlData.publicUrl);
             }
             return urls;
         }
 
-        // --- SUBMIT JALUR DATA (DIRESTORASI SESUAI LOGIKA ASLI ANDA) ---
+        // --- SUBMIT DATA KE TABEL SUPABASE ---
         window.handleFormSubmit = async function(event) {
             event.preventDefault();
-            
             const docIdInput = document.getElementById('unit-doc-id').value;
             const statusLabel = document.getElementById('upload-status');
             const submitBtn = document.getElementById('submit-btn');
-
-            const fase = parseInt(document.getElementById('form-fase').value);
-            const name = document.getElementById('form-name').value;
-            const tag = document.getElementById('form-tag').value;
-            const val = parseInt(document.getElementById('form-val').value);
-            const bed = parseFloat(document.getElementById('form-bed').value) || 0;
-            const bath = parseFloat(document.getElementById('form-bath').value) || 0;
-            const floor = parseInt(document.getElementById('form-floor').value) || 1;
-            const desc = document.getElementById('form-desc').value;
-
-            // Membaca data foto lama jika dalam mode edit
-            let finalPhotos = [];
-            const existingPhotosVal = document.getElementById('existing-photos').value;
-            if (existingPhotosVal) {
-                try { finalPhotos = JSON.parse(decodeURIComponent(existingPhotosVal)); } catch(e) {}
-            }
 
             if (!docIdInput && processedImages.length === 0) {
                 window.showToast("Wajib Pilih & Sesuaikan Minimal 1 Foto!", false);
                 return;
             }
 
-            if (processedImages.length > 0) {
-                statusLabel.classList.remove('hidden');
-                submitBtn.disabled = true;
-                
-                // Memanggil fungsi cloud bawaan Firebase Storage yang baru dibuat
-                const cloudUrls = await uploadImagesToCloud();
-                
-                finalPhotos = docIdInput ? [...cloudUrls, ...finalPhotos] : cloudUrls;
-                
-                statusLabel.classList.add('hidden');
-                submitBtn.disabled = false;
-            }
-
-            if (finalPhotos.length === 0) {
-                window.showToast("Gagal Memproses Foto!", false);
-                return;
-            }
-
-            const targetDocId = docIdInput || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'units', targetDocId);
-
-            const payload = { fase, name, tag, val, bed, bath, floor, desc, photos: finalPhotos };
+            statusLabel.classList.remove('hidden');
+            submitBtn.disabled = true;
 
             try {
-                await setDoc(docRef, payload);
+                let finalPhotos = [];
+                const existingPhotosVal = document.getElementById('existing-photos').value;
+                if (existingPhotosVal) {
+                    try { finalPhotos = JSON.parse(decodeURIComponent(existingPhotosVal)); } catch(e) {}
+                }
+
+                if (processedImages.length > 0) {
+                    const cloudUrls = await uploadImagesToSupabase();
+                    finalPhotos = docIdInput ? [...cloudUrls, ...finalPhotos] : cloudUrls;
+                }
+
+                const payload = {
+                    fase: parseInt(document.getElementById('form-fase').value),
+                    name: document.getElementById('form-name').value,
+                    tag: document.getElementById('form-tag').value,
+                    val: parseInt(document.getElementById('form-val').value),
+                    bed: parseFloat(document.getElementById('form-bed').value) || 0,
+                    bath: parseFloat(document.getElementById('form-bath').value) || 0,
+                    floor: parseInt(document.getElementById('form-floor').value) || 1,
+                    desc: document.getElementById('form-desc').value,
+                    photos: finalPhotos // Menyimpan array URL gambar
+                };
+
+                if (docIdInput) {
+                    // Update data unit lama
+                    const { error } = await supabase.from('units').update(payload).eq('id', docIdInput);
+                    if (error) throw error;
+                } else {
+                    // Masukkan data unit baru
+                    const { error } = await supabase.from('units').insert([payload]);
+                    if (error) throw error;
+                }
+
                 resetForm();
-                window.showToast("Data & Foto Sesuai Ukuran Berhasil Disimpan!");
+                fetchUnitsFromSupabase(); // Refresh list otomatis di dashboard admin
+                window.showToast("Data & Foto Berhasil Disimpan!");
             } catch (err) {
-                window.showToast("Gagal Menyimpan Data Cloud", false);
+                console.error(err);
+                window.showToast("Gagal Menyimpan ke Supabase", false);
+            } finally {
+                statusLabel.classList.add('hidden');
+                submitBtn.disabled = false;
             }
         };
 
         window.deleteUnitFromCloud = function(id) {
-            if (!auth.currentUser) return;
-            
             const modal = document.getElementById('confirm-modal');
             const cancelBtn = document.getElementById('confirm-cancel-btn');
             const yesBtn = document.getElementById('confirm-yes-btn');
-            
             modal.classList.remove('hidden');
             
-            cancelBtn.onclick = function() {
-                modal.classList.add('hidden');
-            };
-            
+            cancelBtn.onclick = () => modal.classList.add('hidden');
             yesBtn.onclick = async function() {
                 modal.classList.add('hidden');
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'units', id));
+                const { error } = await supabase.from('units').delete().eq('id', id);
+                if (!error) {
                     window.showToast("Unit Berhasil Dihapus!");
-                } catch(err) {
+                    fetchUnitsFromSupabase();
+                } else {
                     window.showToast("Gagal Menghapus Unit", false);
                 }
             };
@@ -752,9 +492,7 @@
                     <div class="truncate flex items-center gap-3">
                         <img src="${u.photos && u.photos[0] ? u.photos[0] : 'https://via.placeholder.com/150'}" class="w-10 h-10 object-cover rounded-xl border border-gray-200">
                         <div class="truncate">
-                            <span class="font-extrabold text-[#a68966] text-[8px] block uppercase">
-                                ${phaseNames[u.fase] || `FASE ${u.fase}`}
-                            </span>
+                            <span class="font-extrabold text-[#a68966] text-[8px] block uppercase">${phaseNames[u.fase] || `FASE ${u.fase}`}</span>
                             <span class="font-black text-[#2d241d] text-[11px] block uppercase truncate leading-tight">${u.name}</span>
                         </div>
                     </div>
@@ -806,6 +544,7 @@
             document.getElementById('preview-container').innerHTML = "";
         };
     </script>
+    
 </body>
 </html>
 

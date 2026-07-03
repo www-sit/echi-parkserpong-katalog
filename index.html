@@ -437,38 +437,36 @@
             unitSupabase.forEach(unit => {
                 const f = unit.fase;
 
-                // Pastikan hanya memproses fase yang relevan (5, 6, 7, 8, atau 100)
                 if (f === 5 || f === 6 || f === 7 || f === 8 || f === 100) {
-                    let fotoUnit = 'placeholder.jpg';
-        
-        if (unit.photos) {
-            try {
-                const parsedPhotos = typeof unit.photos === 'string' ? JSON.parse(unit.photos) : unit.photos;
-                if (Array.isArray(parsedPhotos) && parsedPhotos.length > 0) {
-                    fotoUnit = parsedPhotos[0];
-                }
-            } catch (e) {
-                console.error("Gagal membaca foto Supabase:", e);
-            }
-        }
+                    // 1. Ambil semua foto dari Supabase dalam bentuk Array asli
+                    let semuaFoto = ['placeholder.jpg']; // Default jika kosong
+                    
+                    if (unit.photos) {
+                        try {
+                            const parsedPhotos = typeof unit.photos === 'string' ? JSON.parse(unit.photos) : unit.photos;
+                            if (Array.isArray(parsedPhotos) && parsedPhotos.length > 0) {
+                                semuaFoto = parsedPhotos; // Mengambil seluruh array foto (1-4 foto)
+                            }
+                        } catch (e) {
+                            console.error("Gagal membaca foto Supabase:", e);
+                        }
+                    }
 
-        const packedUnit = {
-            id: unit.id,
-            fase: f,
-            name: unit.name || "Tanpa Nama",
-            price: unit.tag || "Detail Hubungi Admin",
-            val: unit.val || 0,
-            bed: unit.bed || 0,
-            bath: unit.bath || 0,
-            floor: unit.floor || 0,
-            img: fotoUnit, // Tetap dipertahankan jika ada fungsi lain yang memakai
-            photos: [fotoUnit], // <-- INI KUNCINYA: Wajib ditambahkan sebagai array agar fungsi renderUnits & openSheet tidak crash!
-            desc: unit.desc || "",
-            isCloud: true
-        };
-        
+                    // 2. Susun objek dengan properti yang tepat sesuai kebutuhan HTML Anda
+                    const packedUnit = {
+                        id: unit.id,
+                        fase: f,
+                        name: unit.name || "Tanpa Nama",
+                        tag: unit.tag || unit.price || "Detail Hubungi Admin", // PERBAIKAN: Gunakan properti 'tag' agar tidak 'undefined'
+                        val: unit.val || 0,
+                        bed: unit.bed || 0,
+                        bath: unit.bath || 0,
+                        floor: unit.floor || 0,
+                        photos: semuaFoto, // PERBAIKAN: Memasukkan seluruh list foto untuk slider kran kuning
+                        desc: unit.desc || "",
+                        isCloud: true
+                    };
 
-      // Masukkan ke array unitData sesuai kelompok fasenya
                     unitData[f].push(packedUnit);
                 }
             });

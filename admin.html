@@ -162,14 +162,14 @@
                         </div>
                         <div>
                             <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">Angka Murni (KPR)</label>
-                            <input type="number" id="form-val" placeholder="Misal: 1200000000" required class="form-input-premium">
+                            <input type="text" id="form-val" placeholder="Misal: 1200000000" required class="form-input-premium"oninput="this.value = formatRibuan(this.value)">
                         </div>
                     </div>
-
+                                                                                                                                                                                                                                            
                     <div class="grid grid-cols-3 gap-2">
                         <div id="bed-input-container">
                             <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">Kamar Tidur</label>
-                            <input type="number" step="0.5" id="form-bed" placeholder="1" required class="form-input-premium text-center">
+                            <input type="number" step="0.5" id="form-bed" placeholder="1" required class="form-input-premium text-center">                                                                                        
                         </div>
                         <div>
                             <label class="text-[9px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">Kamar Mandi</label>
@@ -270,7 +270,28 @@
             8: "Phase 8 - Infinite Collection",
             100: "Ruko & Komersial"
         };
+    window.formatRibuan = function(angka) {
+            if (!angka) return '';
+            let numberString = angka.toString().replace(/[^,\d]/g, '');
+            let split = numberString.split(',');
+            let sisa = split[0].length % 3;
+            let rupiah = split[0].substr(0, sisa);
+            let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
 
+            if (ribuan) {
+                let separator = sisa ? '.' : '';
+                rupiah += separator + ribuan.join('.');
+            }
+
+            rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+            return rupiah;
+        }
+
+        window.hilangkanTitik = function(teks) {
+            if (!teks) return 0;
+            return parseInt(teks.toString().replace(/\./g, '')) || 0;
+        }
+        // ==========================
         window.showToast = function(msg, isSuccess = true) {
             const toast = document.getElementById('toast-msg-box');
             const icon = document.getElementById('toast-icon-box');
@@ -438,7 +459,7 @@
                     fase: parseInt(document.getElementById('form-fase').value),
                     name: document.getElementById('form-name').value,
                     tag: document.getElementById('form-tag').value,
-                    val: parseInt(document.getElementById('form-val').value),
+                    val: window.hilangkanTitik(document.getElementById('form-val').value),
                     bed: parseFloat(document.getElementById('form-bed').value) || 0,
                     bath: parseFloat(document.getElementById('form-bath').value) || 0,
                     floor: parseInt(document.getElementById('form-floor').value) || 1,
@@ -517,7 +538,7 @@
             toggleFormInputs(u.fase);
             
             document.getElementById('form-tag').value = u.tag;
-            document.getElementById('form-val').value = u.val;
+            document.getElementById('form-val').value = window.formatRibuan(u.val || "");
             document.getElementById('form-bed').value = u.bed;
             document.getElementById('form-bath').value = u.bath;
             document.getElementById('form-floor').value = u.floor;
